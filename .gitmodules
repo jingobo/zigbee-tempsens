@@ -1,0 +1,3 @@
+[submodule "source/zstack"]
+	path = source/zstack
+	url = https://github.com/jingobo/zstack-3.0.2.git
