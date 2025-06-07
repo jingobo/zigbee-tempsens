@@ -1,4 +1,5 @@
 #include "zed.h"
+#include "temp.h"
 #include "zed_info.h"
 
 #include <hal_led.h>
@@ -306,14 +307,23 @@ uint16_t zed_event_loop(uint8_t task_id, uint16_t events)
             osal_event_hdr_t * const msg = (osal_event_hdr_t *)osal_msg_receive(zed_task_id);
             if (msg == NULL)
                 break;
-            
+
             switch (msg->event)
-            { }
+            { 
+                case ZCL_INCOMING_MSG:
+                    // Incoming ZCL Foundation command/response messages
+                    {
+                        zclIncomingMsg_t * const zcl_msg = (zclIncomingMsg_t *)msg;
+                        if (zcl_msg->attrCmd)
+                            osal_mem_free(zcl_msg->attrCmd);
+                    }
+                  break;
+            }
             
             osal_msg_deallocate((uint8_t *)msg);
         }
 
-        return (events ^ SYS_EVENT_MSG);
+        return events ^ SYS_EVENT_MSG;
     }
 
     // Таймер переподключения
@@ -332,6 +342,38 @@ void zed_attr_temp_changed(void)
     if (zed_join_state != ZED_JOIN_STATE_SUCCESS)
         return;
     
-    HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_BLINK);
-    bdb_RepChangedAttrValueInstant(ZED_ENDPOINT, ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT, ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
+    // Параметры отчета
+    static struct
+    {
+        zclReportCmd_t cmd;
+        zclReport_t attr;
+    } report =
+    {
+        .cmd = 
+        {
+            .numAttr = 1,
+        },
+        .attr = 
+        {
+            .attrID = ATTRID_MS_TEMPERATURE_MEASURED_VALUE,
+            .dataType = ZCL_DATATYPE_INT16,
+            .attrData = (uint8_t *)&temp_current,
+        },
+    };
+    
+    // Параметры адреса назначения
+    static afAddrType_t dest_address =
+    {
+        .addr =
+        {
+            .shortAddr = 0,
+        },
+        .addrMode = afAddr16Bit,
+        .endPoint = ZED_ENDPOINT,
+    };
+    
+    // Передача запроса
+    static uint8_t seq = 0;
+    if (zcl_SendReportCmd(ZED_ENDPOINT, &dest_address, ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT, &report.cmd, ZCL_FRAME_SERVER_CLIENT_DIR, BDB_REPORTING_DISABLE_DEFAULT_RSP, seq++) == ZSuccess)
+        HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_BLINK);
 }

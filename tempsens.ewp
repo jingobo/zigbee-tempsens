@@ -317,15 +317,13 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
-                    <state>OSAL_HOOK_START_TIMER_EX</state>
-                    <state>MTO_RREQ_LIMIT_TIME=4000</state>
                     <state>POWER_SAVING</state>
+                    <state>MTO_RREQ_LIMIT_TIME=4000</state>
                     <state>BDB_REPORTING</state>
                     <state>SECURE=1</state>
                     <state>TC_LINKKEY_JOIN</state>
                     <state>NV_INIT</state>
                     <state>NV_RESTORE</state>
-                    <state>POWER_SAVING</state>
                     <state>NWK_AUTO_POLL</state>
                     <state>MULTICAST_ENABLED=FALSE</state>
                     <state>ZCL_READ</state>
