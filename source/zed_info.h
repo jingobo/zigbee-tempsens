@@ -11,7 +11,7 @@
 extern CONST zclCommandRec_t ZED_INFO_COMMANDS[];
 
 // Количество поддерживаемых аттрибутов
-#define ZED_INFO_ATTRIBUTES_COUNT       16
+#define ZED_INFO_ATTRIBUTES_COUNT       17
 
 // Список поддерживаемых аттрибутов
 extern CONST zclAttrRec_t ZED_INFO_ATTRIBUTES[];

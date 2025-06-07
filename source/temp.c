@@ -4,18 +4,19 @@
 
 // Значение масштаба для градусов
 #define TEMP_SCALE      100
-// Значение не определенной температуры
-#define TEMP_UNKNOWN    -32768
 
 // Диапазон измерений температуры [C]
 const int16_t TEMP_RANGE_MIN = -40 * TEMP_SCALE,
               TEMP_RANGE_MAX = +80 * TEMP_SCALE;
 
+// Точность измерения температуры [C] (0.01)
+const uint16_t TEMP_TOLERANCE = 1;
+
 // Текущее значение температуры
 int16_t temp_current = 25 * TEMP_SCALE;
 
-// Маска события запроса температуры
-static const uint16_t TEMP_QUERY_EVENT = 0x0001;
+// Маска таймера запроса температуры
+static const uint16_t TEMP_QUERY_REQUEST = 0x0001;
 // Маска таймера таймаута запроса
 static const uint16_t TEMP_QUERY_TIMEOUT = 0x0002;
 
@@ -41,30 +42,20 @@ static void temp_response_cb(uint8_t *data, uint8_t size)
     // Извлечение значения
     memcpy(&temp_current, data + 6, sizeof(temp_current));
     
-    // Предыдущее значение температуры
-    static int16_t temp_last = TEMP_UNKNOWN;
-    if (temp_last == temp_current)
-        return;
-    
     // Оповещение о изменении
-    temp_last = temp_current;
     zed_attr_temp_changed();
 }
 
 void temp_init_task(uint8_t task)
 {
     temp_task_id = task;
-}
-
-void temp_query(void)
-{ 
-    osal_set_event(temp_task_id, TEMP_QUERY_EVENT);
+    osal_start_reload_timer(temp_task_id, TEMP_QUERY_REQUEST, 60000);
 }
 
 uint16_t temp_event_loop(uint8_t task_id, uint16_t events)
 {
     // Событие запроса температуры
-    if ((events & TEMP_QUERY_EVENT) != 0)
+    if ((events & TEMP_QUERY_REQUEST) != 0)
     {
         // Передача запроса к измерителю
         static const uint8_t REQUEST[] = 
@@ -80,7 +71,7 @@ uint16_t temp_event_loop(uint8_t task_id, uint16_t events)
         osal_start_timerEx(temp_task_id, TEMP_QUERY_TIMEOUT, 100);
         
         // Обработано
-        return events ^ TEMP_QUERY_EVENT;
+        return events ^ TEMP_QUERY_REQUEST;
     }
 
     // Событие таймаута запроса

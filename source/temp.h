@@ -10,12 +10,12 @@ extern int16_t temp_current;
 extern const int16_t TEMP_RANGE_MIN,
                      TEMP_RANGE_MAX;
 
+// Точность измерения температуры [C]
+extern const uint16_t TEMP_TOLERANCE;
+
 // Инициалзиация модулдя
 void temp_init_task(uint8_t task);
 // Обработчик главного цикла
 uint16_t temp_event_loop(uint8_t task_id, uint16_t events);
-
-// Производит запрос температуры
-void temp_query(void);
 
 #endif // __TEMP_H

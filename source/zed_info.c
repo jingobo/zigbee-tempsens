@@ -60,7 +60,7 @@ static const uint16_t ZED_INFO_CLUESTER_REV = 1;
 // Идентификаторы атрибутов в кластере должны быть в порядке возрастания
 CONST zclAttrRec_t ZED_INFO_ATTRIBUTES[] =
 {
-    //            Cluster ID                                    Attribute ID                        Data Type               Access                                          Data
+    //            Cluster ID                                    Attribute ID                                Data Type               Access                                          Data
     
     // General Basic Cluster Attributes (7)
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_GEN_BASIC,                     ATTRID_BASIC_ZCL_VERSION,                   ZCL_DATATYPE_UINT8,     ACCESS_CONTROL_READ,                            &ZED_INFO_ZCL_VERSION),
@@ -75,10 +75,11 @@ CONST zclAttrRec_t ZED_INFO_ATTRIBUTES[] =
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_GEN_IDENTIFY,                  ATTRID_IDENTIFY_TIME,                       ZCL_DATATYPE_UINT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE,     &zed_identify_time),
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_GEN_IDENTIFY,                  ATTRID_CLUSTER_REVISION,                    ZCL_DATATYPE_UINT16,    ACCESS_CONTROL_READ,                            &ZED_INFO_CLUESTER_REV),
     
-    // Temperature Measurement Cluster Attributes (4)
+    // Temperature Measurement Cluster Attributes (5)
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE,       ZCL_DATATYPE_INT16,     ACCESS_CONTROL_READ | ACCESS_REPORTABLE,        &temp_current),
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MIN_MEASURED_VALUE,   ZCL_DATATYPE_INT16,     ACCESS_CONTROL_READ,                            &TEMP_RANGE_MIN),
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MAX_MEASURED_VALUE,   ZCL_DATATYPE_INT16,     ACCESS_CONTROL_READ,                            &TEMP_RANGE_MAX),
+    ZED_INFO_ATTR(ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_TOLERANCE,            ZCL_DATATYPE_UINT16,    ACCESS_CONTROL_READ,                            &TEMP_TOLERANCE),
     ZED_INFO_ATTR(ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_CLUSTER_REVISION,                    ZCL_DATATYPE_UINT16,    ACCESS_CONTROL_READ,                            &ZED_INFO_CLUESTER_REV),
 
     // Groups Cluster Attributes (2)
