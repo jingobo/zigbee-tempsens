@@ -23,9 +23,6 @@ const pTaskEventHandlerFn tasksArr[] =
     temp_event_loop,
 };
 
-// Идентификатор задачи сетевого слоя стека
-static __no_init uint8_t nwk_task_id;
-
 // Маска событий
 uint16_t *tasksEvents;
 // Количество задач
@@ -38,7 +35,7 @@ void osalInitTasks(void)
 
     uint8_t task = 0;
     
-    macTaskInit(task++); nwk_task_id = task;
+    macTaskInit(task++);
     nwk_init(task++);
     Hal_Init(task++);
     APS_Init(task++);
@@ -49,20 +46,4 @@ void osalInitTasks(void)
     
     zed_init_task(task++);
     temp_init_task(task++);
-}
-
-void osal_start_timer_hook(uint8_t taskID, uint16_t event_id, uint32_t timeout_value)
-{
-    if (taskID != nwk_task_id)
-        return;
-
-    if (event_id != NWK_AUTO_POLL_EVT)
-        return;
-
-    if (timeout_value != POLL_RATE)
-        return;
-    
-    // Здесь происходит событие пула передачи маяка Zigbee
-    // Может пригодится для определения времени простоя RF
-    temp_query();
 }
