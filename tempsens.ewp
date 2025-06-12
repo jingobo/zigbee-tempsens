@@ -318,21 +318,12 @@
                 <option>
                     <name>CCDefines</name>
                     <state>POWER_SAVING</state>
-                    <state>MTO_RREQ_LIMIT_TIME=4000</state>
-                    <state>BDB_REPORTING</state>
-                    <state>SECURE=1</state>
-                    <state>TC_LINKKEY_JOIN</state>
                     <state>NV_INIT</state>
                     <state>NV_RESTORE</state>
                     <state>NWK_AUTO_POLL</state>
-                    <state>MULTICAST_ENABLED=FALSE</state>
-                    <state>ZCL_READ</state>
-                    <state>ZCL_DISCOVER</state>
-                    <state>ZCL_WRITE</state>
-                    <state>ZCL_BASIC</state>
-                    <state>ZCL_IDENTIFY</state>
-                    <state>ZCL_SCENES</state>
-                    <state>ZCL_GROUPS</state>
+                    <state>BDB_REPORTING</state>
+                    <state>TC_LINKKEY_JOIN</state>
+                    <state>ZDO_API_ADVANCED</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -1398,6 +1389,9 @@
             </file>
         </group>
     </group>
+    <file>
+        <name>$PROJ_DIR$\source\bat.c</name>
+    </file>
     <file>
         <name>$PROJ_DIR$\source\main.c</name>
     </file>

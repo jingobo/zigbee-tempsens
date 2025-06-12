@@ -91,7 +91,9 @@ static void zed_addr_long_apply(void)
 static __no_init uint8_t zed_task_id;
 
 // Идентификатор события переподключения
-static const uint16_t ZED_REJOIN_EVENT = 0x0004;
+static const uint16_t ZED_REJOIN_EVENT = 0x0001;
+// Идентификатор события сброса быстрого опроса
+static const uint16_t ZED_POOL_SLOW_EVENT = 0x0002;
 
 // Перечисление состояния подключения
 typedef enum
@@ -117,13 +119,24 @@ static void zed_rejoin(void)
     HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_OFF);
 }
 
+// Обработчик установки медленного опроса координатора
+static void zed_pool_rate_slow(void)
+{
+    NLME_SetPollRate(POLL_RATE);
+}
+
 // Задает состояние подключения
 static void zed_join_state_set(zed_join_state_t state)
 {
     if (zed_join_state == state)
         return;
     zed_join_state = state;
+
+    // В любом случае сброс таймера замедления 
+    zed_pool_rate_slow();
+    osal_stop_timerEx(zed_task_id, ZED_POOL_SLOW_EVENT);
     
+    // Обработка нового состояния
     switch (state)
     {
         case ZED_JOIN_STATE_LOST:
@@ -146,6 +159,10 @@ static void zed_join_state_set(zed_join_state_t state)
             HalLedSet(ZED_LED_CONNECT, HAL_LED_MODE_ON);
             HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_OFF);
 
+            // Первые 10 секунд быстрый пул координатора для форсирования интервью
+            NLME_SetPollRate(250);
+            osal_start_timerEx(zed_task_id, ZED_POOL_SLOW_EVENT, 10000);
+            
             // Вывод короткого адреса устройства
             zed_addr_print_short("End device", NLME_GetShortAddr());
             // Вывод длинного адреса координатора
@@ -168,7 +185,7 @@ static void zed_join(void)
     switch (zed_join_state)
     {
         case ZED_JOIN_STATE_IDLE:
-            bdb_StartCommissioning(BDB_COMMISSIONING_MODE_NWK_STEERING);
+            bdb_StartCommissioning(BDB_COMMISSIONING_MODE_NWK_STEERING | BDB_COMMISSIONING_MODE_FINDING_BINDING);
             break;
           
         case ZED_JOIN_STATE_LOST:
@@ -218,6 +235,24 @@ static void zed_process_commissioning(bdbCommissioningModeMsg_t *bdbCommissionin
                 default:
                     zed_join_state_set(ZED_JOIN_STATE_LOST);
                     break;
+            }
+            break;
+            
+        case BDB_COMMISSIONING_FINDING_BINDING:
+            switch (bdbCommissioningModeMsg->bdbCommissioningStatus)
+            {
+                case BDB_COMMISSIONING_FB_TARGET_IN_PROGRESS:
+                    printf("FB find initiator in process...\r\n");
+                    break;
+
+                case BDB_COMMISSIONING_FB_INITITATOR_IN_PROGRESS:
+                    printf("FB find target in process...\r\n");
+                    break;
+                    
+                case BDB_COMMISSIONING_FB_NO_IDENTIFY_QUERY_RESPONSE:
+                    printf("FB find target finish.\r\n");
+                    break;
+                    
             }
             break;
     }
@@ -293,6 +328,9 @@ void zed_init_task(uint8_t task_id)
     bdb_RegisterCommissioningStatusCB(zed_process_commissioning);
     bdb_RegisterIdentifyTimeChangeCB(zed_identify_time_changed);
     
+    // Конечная точка для FB идентификации
+    bdb_SetIdentifyActiveEndpoint(ZED_ENDPOINT);
+    
     // Запуск подключения
     zed_join();
 }
@@ -333,6 +371,13 @@ uint16_t zed_event_loop(uint8_t task_id, uint16_t events)
         return events ^ ZED_REJOIN_EVENT;
     }
     
+    // Таймер переподключения
+    if ((events & ZED_POOL_SLOW_EVENT) != 0)
+    {
+        zed_pool_rate_slow();
+        return events ^ ZED_POOL_SLOW_EVENT;
+    }
+    
     // Отброс не известных событий
     return 0;
 }
@@ -368,7 +413,7 @@ void zed_attr_temp_changed(void)
         {
             .shortAddr = 0,
         },
-        .addrMode = afAddr16Bit,
+        .addrMode = afAddrNotPresent,
         .endPoint = ZED_ENDPOINT,
     };
     
