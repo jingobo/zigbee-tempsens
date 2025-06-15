@@ -40,4 +40,9 @@ typedef float float32_t;
 #define IRQ_SUPPRESS_LEAVE()                \
     HAL_EXIT_CRITICAL_SECTION(__irq_ctx)
 
+// --- Разное --- //
+
+// Расчет размера массива
+#define ARRAY_SIZE(x)   (sizeof(x) / sizeof((x)[0]))
+        
 #endif // __TYPEDEFS_H

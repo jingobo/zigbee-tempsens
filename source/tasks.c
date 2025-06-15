@@ -5,7 +5,7 @@
 #include <bdb_interface.h>
 
 #include "zed.h"
-#include "temp.h"
+#include "host.h"
 
 // Глобальный список обработчиков событий
 const pTaskEventHandlerFn tasksArr[] = 
@@ -20,7 +20,7 @@ const pTaskEventHandlerFn tasksArr[] =
     bdb_event_loop,
     
     zed_event_loop,
-    temp_event_loop,
+    host_event_loop,
 };
 
 // Маска событий
@@ -45,5 +45,5 @@ void osalInitTasks(void)
     bdb_Init(task++);
     
     zed_init_task(task++);
-    temp_init_task(task++);
+    host_init_task(task++);
 }

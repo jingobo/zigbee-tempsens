@@ -20,7 +20,9 @@ void zed_init_task(uint8_t task_id);
 // Обпботчик очереди событий
 uint16 zed_event_loop(uint8_t task_id, uint16_t events);
 
-// Обработчик события изменения значения атрибута температуры
+// Обработчик события изменения атрибута батареи
+void zed_attr_bat_changed(void);
+// Обработчик события изменения атрибута температуры
 void zed_attr_temp_changed(void);
 
 #endif // __ZED_H

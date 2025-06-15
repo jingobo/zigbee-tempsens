@@ -31,6 +31,7 @@ void mcu_init(void)
     
     // Инициалзиация HAL
     HalDriverInit();
+    osal_nv_init();
 }
 
 void mcu_init_early(void)

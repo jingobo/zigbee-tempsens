@@ -1,23 +1,16 @@
 #include "mcu.h"
 #include "zed.h"
 #include "uart.h"
+#include "sens.h"
 
 // Главня точка входа
 __noreturn void main(void)
 {
-    // Микроконтроллер
     mcu_init();
-
-    // Initialize NV System
-    osal_nv_init();
-
-    // Конечное устройство
     zed_init();
-
-    // Отладочный порт
     uart_init();
+    sens_init();
     
-    // Initialize the operating system
     osal_init_system();
 
     // Цикл обработки сообщений

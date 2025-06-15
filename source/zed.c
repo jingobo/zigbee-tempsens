@@ -1,5 +1,5 @@
 #include "zed.h"
-#include "temp.h"
+#include "sens.h"
 #include "zed_info.h"
 
 #include <hal_led.h>
@@ -111,10 +111,17 @@ typedef enum
 // Состояние подключения
 static zed_join_state_t zed_join_state = ZED_JOIN_STATE_IDLE;   
 
+// Период переподключения [сек]
+static uint8_t zed_rejoin_period = 0;
+
 // Производит перезапуск подключения
 static void zed_rejoin(void)
 {
-    osal_start_timerEx(zed_task_id, ZED_REJOIN_EVENT, 5000);
+    zed_rejoin_period += 10;
+    if (zed_rejoin_period > 240)
+        zed_rejoin_period = 240;
+    
+    osal_start_timerEx(zed_task_id, ZED_REJOIN_EVENT, zed_rejoin_period * 5000ul);
     HalLedSet(ZED_LED_CONNECT, HAL_LED_MODE_OFF);
     HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_OFF);
 }
@@ -156,6 +163,7 @@ static void zed_join_state_set(zed_join_state_t state)
             
         case ZED_JOIN_STATE_SUCCESS:
             printf("Joined!\r\n");
+            zed_rejoin_period = 0;
             HalLedSet(ZED_LED_CONNECT, HAL_LED_MODE_ON);
             HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_OFF);
 
@@ -382,6 +390,17 @@ uint16_t zed_event_loop(uint8_t task_id, uint16_t events)
     return 0;
 }
 
+// Параметры адреса назначения
+static afAddrType_t zed_dest_address =
+{
+    .addr =
+    {
+        .shortAddr = 0,
+    },
+    .addrMode = afAddrNotPresent,
+    .endPoint = ZED_ENDPOINT,
+};
+
 void zed_attr_temp_changed(void)
 {
     if (zed_join_state != ZED_JOIN_STATE_SUCCESS)
@@ -402,23 +421,41 @@ void zed_attr_temp_changed(void)
         {
             .attrID = ATTRID_MS_TEMPERATURE_MEASURED_VALUE,
             .dataType = ZCL_DATATYPE_INT16,
-            .attrData = (uint8_t *)&temp_current,
+            .attrData = (uint8_t *)&sens_temp_current,
         },
     };
-    
-    // Параметры адреса назначения
-    static afAddrType_t dest_address =
-    {
-        .addr =
-        {
-            .shortAddr = 0,
-        },
-        .addrMode = afAddrNotPresent,
-        .endPoint = ZED_ENDPOINT,
-    };
-    
+        
     // Передача запроса
     static uint8_t seq = 0;
-    if (zcl_SendReportCmd(ZED_ENDPOINT, &dest_address, ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT, &report.cmd, ZCL_FRAME_SERVER_CLIENT_DIR, BDB_REPORTING_DISABLE_DEFAULT_RSP, seq++) == ZSuccess)
+    if (zcl_SendReportCmd(ZED_ENDPOINT, &zed_dest_address, ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT, &report.cmd, ZCL_FRAME_SERVER_CLIENT_DIR, BDB_REPORTING_DISABLE_DEFAULT_RSP, seq++) == ZSuccess)
         HalLedSet(ZED_LED_PRIMARY, HAL_LED_MODE_BLINK);
+}
+
+void zed_attr_bat_changed(void)
+{
+    if (zed_join_state != ZED_JOIN_STATE_SUCCESS)
+        return;
+    
+    // Параметры отчета
+    static struct
+    {
+        zclReportCmd_t cmd;
+        zclReport_t attr;
+    } report =
+    {
+        .cmd = 
+        {
+            .numAttr = 1,
+        },
+        .attr = 
+        {
+            .attrID = ATTRID_POWER_CFG_BATTERY_PERCENTAGE_REMAINING,
+            .dataType = ZCL_DATATYPE_UINT8,
+            .attrData = &sens_bat_precentage,
+        },
+    };
+
+    // Передача запроса
+    static uint8_t seq = 0;
+    zcl_SendReportCmd(ZED_ENDPOINT, &zed_dest_address, ZCL_CLUSTER_ID_GEN_POWER_CFG, &report.cmd, ZCL_FRAME_SERVER_CLIENT_DIR, BDB_REPORTING_DISABLE_DEFAULT_RSP, seq++);
 }

@@ -1390,7 +1390,7 @@
         </group>
     </group>
     <file>
-        <name>$PROJ_DIR$\source\bat.c</name>
+        <name>$PROJ_DIR$\source\host.c</name>
     </file>
     <file>
         <name>$PROJ_DIR$\source\main.c</name>
@@ -1399,13 +1399,13 @@
         <name>$PROJ_DIR$\source\mcu.c</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\source\sens.c</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\source\startup.s51</name>
     </file>
     <file>
         <name>$PROJ_DIR$\source\tasks.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\source\temp.c</name>
     </file>
     <file>
         <name>$PROJ_DIR$\source\uart.c</name>
